@@ -3,7 +3,7 @@ name: Build and Upload to S3
 on:
   push:
     branches:
-      - main  # Change to your main branch
+      - main  # Change if your main branch has a different name
 
 jobs:
   build:
@@ -24,6 +24,14 @@ jobs:
       - name: Build Angular App
         run: npm run build -- --configuration=production --output-path=dist
 
+      - name: Create Deployment ZIP
+        run: |
+          mkdir -p deployment-package
+          cp -r dist deployment-package/
+          cp appspec.yml deployment-package/
+          cp -r scripts/ deployment-package/  # Ensure any necessary scripts are included
+          cd deployment-package && zip -r ../deployment.zip . && cd ..
+
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
@@ -31,6 +39,6 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ap-south-1  # Mumbai region
 
-      - name: Upload to S3
+      - name: Upload ZIP to S3
         run: |
-          aws s3 sync dist s3://awss3forproject1 --delete
+          aws s3 cp deployment.zip s3://awss3forproject1/deployment.zip
