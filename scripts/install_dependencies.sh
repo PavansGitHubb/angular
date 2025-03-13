@@ -1,15 +1,13 @@
 #!/bin/bash
-set -e
+set -e  # Exit immediately if a command exits with a non-zero status
 
-# Install updates
-sudo yum update -y
+# Update package lists
+sudo apt update -y
 
-# Install Nginx (if not installed)
-if ! command -v nginx &> /dev/null; then
-    sudo amazon-linux-extras enable nginx1
-    sudo yum install -y nginx
-fi
+# Install required dependencies (modify as per your project)
+sudo apt install -y nginx unzip nodejs npm
 
-# Start Nginx
-sudo systemctl enable nginx
-sudo systemctl start nginx
+# Optional: Verify installations
+nginx -v
+node -v
+npm -v
