@@ -5,6 +5,11 @@ set -e
 sudo mv /var/www/html/browser/* /var/www/html/
 sudo rm -rf /var/www/html/browser
 
+# Set correct ownership and permissions
+sudo chown -R www-data:www-data /var/www/html
+sudo chmod -R 755 /var/www/html
+sudo find /var/www/html -type f -exec chmod 644 {} \;
+
 # Remove default Nginx config
 sudo rm -f /etc/nginx/sites-enabled/default
 
@@ -16,11 +21,11 @@ server {
 
     root /var/www/html;
     index index.html;
-    
+
     location / {
         try_files \$uri /index.html;
     }
-    
+
     error_page 404 =200 /index.html;
 }
 EOF
