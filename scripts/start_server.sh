@@ -1,19 +1,33 @@
 #!/bin/bash
-set -e  # Exit if any command fails
+set -e
 
-# Move all files from /var/www/html/dist/ to /var/www/html/
-if [ -d "/var/www/html/dist" ]; then
-    echo "Moving Angular build files to /var/www/html/"
-    sudo mv /var/www/html/dist/* /var/www/html/
-    sudo rm -rf /var/www/html/dist  # Remove the empty dist folder
-else
-    echo "Warning: No dist folder found in /var/www/html/"
-fi
+# Move Angular build files to the correct location
+sudo mv /var/www/html/browser/* /var/www/html/
+sudo rm -rf /var/www/html/browser
 
-# Set correct ownership and permissions
-sudo chown -R www-data:www-data /var/www/html
-sudo find /var/www/html -type d -exec chmod 755 {} \;
-sudo find /var/www/html -type f -exec chmod 644 {} \;
+# Remove default Nginx config
+sudo rm -f /etc/nginx/sites-enabled/default
+
+# Add new Nginx config for Angular
+cat <<EOF | sudo tee /etc/nginx/sites-available/angular
+server {
+    listen 80;
+    server_name _;
+
+    root /var/www/html;
+    index index.html;
+    
+    location / {
+        try_files \$uri /index.html;
+    }
+    
+    error_page 404 =200 /index.html;
+}
+EOF
+
+# Enable the new config
+sudo ln -s /etc/nginx/sites-available/angular /etc/nginx/sites-enabled/angular
+sudo rm -f /etc/nginx/sites-enabled/default  # Remove old default config
 
 # Restart Nginx
 sudo systemctl restart nginx
